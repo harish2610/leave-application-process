@@ -1,0 +1,7 @@
+org\example\InstantiateProcessByMessageDelegate.class
+org\example\ManagerApproval.class
+org\example\Application.class
+org\example\CamundaBpmProcessApplication.class
+org\example\LeaveAppReview.class
+org\example\LoggerDelegate.class
+org\example\AutoApproval.class

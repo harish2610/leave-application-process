@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0l2g3fg" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.11.1" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="loan_process" name="Granting Loans" isExecutable="true">
+    <bpmn:serviceTask id="Activity_1q4jd86" name="Check Credit Score" camunda:type="external" camunda:topic="creditScoreChecker">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="Input_120949s">
+            <camunda:script scriptFormat="javascript">execution.setVariable("defaultScore", 5);</camunda:script>
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ubf5kq</bpmn:incoming>
+      <bpmn:outgoing>Flow_0965dzb</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:subProcess id="Activity_1uagifg">
+      <bpmn:incoming>Flow_0965dzb</bpmn:incoming>
+      <bpmn:outgoing>Flow_11axw99</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${creditScores}" camunda:elementVariable="score" />
+      <bpmn:startEvent id="Event_1jjioic">
+        <bpmn:outgoing>Flow_0c66lk9</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:endEvent id="Event_0zunt9s">
+        <bpmn:incoming>Flow_11d6om7</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:endEvent id="Event_12lnu1m">
+        <bpmn:incoming>Flow_14v6qe9</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:exclusiveGateway id="Gateway_0z1flkf" name="Score?">
+        <bpmn:incoming>Flow_0c66lk9</bpmn:incoming>
+        <bpmn:outgoing>Flow_1w8hct4</bpmn:outgoing>
+        <bpmn:outgoing>Flow_149hc8g</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:sequenceFlow id="Flow_0c66lk9" sourceRef="Event_1jjioic" targetRef="Gateway_0z1flkf" />
+      <bpmn:sequenceFlow id="Flow_11d6om7" sourceRef="Activity_16azml3" targetRef="Event_0zunt9s" />
+      <bpmn:sequenceFlow id="Flow_14v6qe9" sourceRef="Activity_0xh2q2b" targetRef="Event_12lnu1m" />
+      <bpmn:sequenceFlow id="Flow_1w8hct4" name="Good" sourceRef="Gateway_0z1flkf" targetRef="Activity_16azml3">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${score &gt; 5}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_149hc8g" name="Bad" sourceRef="Gateway_0z1flkf" targetRef="Activity_0xh2q2b">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${score &lt;= 5}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:serviceTask id="Activity_16azml3" name="Grant loan" camunda:type="external" camunda:topic="loanGranter">
+        <bpmn:incoming>Flow_1w8hct4</bpmn:incoming>
+        <bpmn:outgoing>Flow_11d6om7</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:serviceTask id="Activity_0xh2q2b" name="Reject Loan Request" camunda:type="external" camunda:topic="requestRejecter">
+        <bpmn:incoming>Flow_149hc8g</bpmn:incoming>
+        <bpmn:outgoing>Flow_14v6qe9</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:textAnnotation id="TextAnnotation_0p2l6d0">
+        <bpmn:text>Topic name: loanGranter</bpmn:text>
+      </bpmn:textAnnotation>
+      <bpmn:association id="Association_1wkhsgp" sourceRef="Activity_16azml3" targetRef="TextAnnotation_0p2l6d0" />
+      <bpmn:textAnnotation id="TextAnnotation_02cnmlr">
+        <bpmn:text>Topic name: requestRejecter</bpmn:text>
+      </bpmn:textAnnotation>
+      <bpmn:association id="Association_1ukmmef" sourceRef="Activity_0xh2q2b" targetRef="TextAnnotation_02cnmlr" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="Event_06gvwdi">
+      <bpmn:incoming>Flow_11axw99</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1ubf5kq" sourceRef="StartEvent_1" targetRef="Activity_1q4jd86" />
+    <bpmn:sequenceFlow id="Flow_0965dzb" sourceRef="Activity_1q4jd86" targetRef="Activity_1uagifg" />
+    <bpmn:sequenceFlow id="Flow_11axw99" sourceRef="Activity_1uagifg" targetRef="Event_06gvwdi" />
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1ubf5kq</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_1si89qn">
+        <bpmn:timeCycle xsi:type="bpmn:tFormalExpression">0/5 0/1 * 1/1 * ? *</bpmn:timeCycle>
+      </bpmn:timerEventDefinition>
+    </bpmn:startEvent>
+    <bpmn:textAnnotation id="TextAnnotation_0lyzevc">
+      <bpmn:text>Topic name: creditScoreChecker</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1vyl52o" sourceRef="Activity_1q4jd86" targetRef="TextAnnotation_0lyzevc" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="loan_process">
+      <bpmndi:BPMNEdge id="Flow_11axw99_di" bpmnElement="Flow_11axw99">
+        <di:waypoint x="790" y="225" />
+        <di:waypoint x="862" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0965dzb_di" bpmnElement="Flow_0965dzb">
+        <di:waypoint x="330" y="250" />
+        <di:waypoint x="410" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ubf5kq_di" bpmnElement="Flow_1ubf5kq">
+        <di:waypoint x="188" y="250" />
+        <di:waypoint x="230" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Activity_00od49f_di" bpmnElement="Activity_1q4jd86">
+        <dc:Bounds x="230" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_093pera_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_06gvwdi_di" bpmnElement="Event_06gvwdi">
+        <dc:Bounds x="862" y="207" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1uagifg_di" bpmnElement="Activity_1uagifg" isExpanded="true">
+        <dc:Bounds x="410" y="40" width="380" height="370" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_149hc8g_di" bpmnElement="Flow_149hc8g">
+        <di:waypoint x="530" y="275" />
+        <di:waypoint x="530" y="350" />
+        <di:waypoint x="560" y="350" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="535" y="310" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1w8hct4_di" bpmnElement="Flow_1w8hct4">
+        <di:waypoint x="530" y="225" />
+        <di:waypoint x="530" y="160" />
+        <di:waypoint x="560" y="160" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="533" y="190" width="27" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14v6qe9_di" bpmnElement="Flow_14v6qe9">
+        <di:waypoint x="660" y="350" />
+        <di:waypoint x="692" y="350" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11d6om7_di" bpmnElement="Flow_11d6om7">
+        <di:waypoint x="660" y="160" />
+        <di:waypoint x="692" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0c66lk9_di" bpmnElement="Flow_0c66lk9">
+        <di:waypoint x="478" y="250" />
+        <di:waypoint x="505" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1jjioic_di" bpmnElement="Event_1jjioic">
+        <dc:Bounds x="442" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0zunt9s_di" bpmnElement="Event_0zunt9s">
+        <dc:Bounds x="692" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_12lnu1m_di" bpmnElement="Event_12lnu1m">
+        <dc:Bounds x="692" y="332" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0z1flkf_di" bpmnElement="Gateway_0z1flkf" isMarkerVisible="true">
+        <dc:Bounds x="505" y="225" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="593" y="240" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_021dzja_di" bpmnElement="Activity_16azml3">
+        <dc:Bounds x="560" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0hbrer3_di" bpmnElement="Activity_0xh2q2b">
+        <dc:Bounds x="560" y="310" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_0p2l6d0_di" bpmnElement="TextAnnotation_0p2l6d0">
+        <dc:Bounds x="570" y="60" width="100" height="39" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_02cnmlr_di" bpmnElement="TextAnnotation_02cnmlr">
+        <dc:Bounds x="570" y="250" width="100" height="39" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1wkhsgp_di" bpmnElement="Association_1wkhsgp">
+        <di:waypoint x="615" y="120" />
+        <di:waypoint x="617" y="99" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1ukmmef_di" bpmnElement="Association_1ukmmef">
+        <di:waypoint x="615" y="310" />
+        <di:waypoint x="617" y="289" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0lyzevc_di" bpmnElement="TextAnnotation_0lyzevc">
+        <dc:Bounds x="189" y="140" width="182" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1vyl52o_di" bpmnElement="Association_1vyl52o">
+        <di:waypoint x="280" y="210" />
+        <di:waypoint x="280" y="190" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
